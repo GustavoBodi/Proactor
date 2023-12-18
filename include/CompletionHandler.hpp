@@ -1,5 +1,5 @@
 #pragma once
-#include "Proactor.hpp"
+#include "IProactor.hpp"
 #include "AsyncResult.hpp"
 #include "Handle.hpp"
 
@@ -8,13 +8,13 @@
  */
 class CompletionHandler {
 public:
-  CompletionHandler (Proactor *proactor): _proactor{proactor} {}
+  CompletionHandler (IProactor *proactor): _proactor{proactor} {}
   virtual ~CompletionHandler() = default;
 
   virtual void handle_event(Handle handle, AsyncResult &result) = 0;
   virtual Handle get_handle() const = 0;
 
 protected:
-  Proactor *_proactor;
+  IProactor *_proactor;
 };
 

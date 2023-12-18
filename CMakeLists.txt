@@ -4,6 +4,7 @@ project(project
 
 set(CMAKE_CXX_FLAGS_INIT "-Wall -std=c++20")
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -44,7 +45,7 @@ file (GLOB INCLUDE_FILES
 file (GLOB TEST_FILES
   "${PROJECT_TEST_DIR}/*.cpp")
 
-include_directories(project ${PROJECT_INCLUDE_DIR} )
+include_directories(project "./include/" )
 add_executable(project "${PROJECT_SOURCE_DIR}/main.cpp" ${SRC_FILES} ${INCLUDE_FILES} "${uring_INCLUDE_DIR}/liburing.h")
 target_link_libraries(project -luring)
 

@@ -386,36 +386,36 @@ void server_loop(int server_socket) {
     struct request *req = (struct request *) cqe->user_data;
     if (ret < 0)
       fatal_error("io_uring_wait_cqe");
-      if (cqe->res < 0) {
-        fprintf(stderr, "Async request failed: %s for event: %d\n",
-        strerror(-cqe->res), req->event_type);
-        exit(1);
-      }
-      switch (req->event_type) {
-        case EVENT_TYPE_ACCEPT:
-          add_accept_request(server_socket, &client_addr, &client_addr_len);
-          add_read_request(cqe->res);
-          free(req);
+    if (cqe->res < 0) {
+      fprintf(stderr, "Async request failed: %s for event: %d\n",
+      strerror(-cqe->res), req->event_type);
+      exit(1);
+    }
+    switch (req->event_type) {
+      case EVENT_TYPE_ACCEPT:
+        add_accept_request(server_socket, &client_addr, &client_addr_len);
+        add_read_request(cqe->res);
+        free(req);
+        break;
+      case EVENT_TYPE_READ:
+        if (!cqe->res) {
+          fprintf(stderr, "Empty request!\n");
           break;
-        case EVENT_TYPE_READ:
-          if (!cqe->res) {
-            fprintf(stderr, "Empty request!\n");
-            break;
-          }
-          handle_client_request(req);
-          free(req->iov[0].iov_base);
-          free(req);
-          break;
-        case EVENT_TYPE_WRITE:
-          for (int i = 0; i < req->iovec_count; i++) {
-            free(req->iov[i].iov_base);
-          }
-          close(req->client_socket);
-          free(req);
-          break;
-      }
-      /* Mark this request as processed */
-      io_uring_cqe_seen(&ring, cqe);
+        }
+        handle_client_request(req);
+        free(req->iov[0].iov_base);
+        free(req);
+        break;
+      case EVENT_TYPE_WRITE:
+        for (int i = 0; i < req->iovec_count; i++) {
+          free(req->iov[i].iov_base);
+        }
+        close(req->client_socket);
+        free(req);
+        break;
+    }
+    /* Mark this request as processed */
+    io_uring_cqe_seen(&ring, cqe);
   }
 }
 
