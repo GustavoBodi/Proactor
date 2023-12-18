@@ -9,6 +9,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 
+find_path(uring_INCLUDE_DIR NAMES liburing.h)
+find_library(uring_LIBRARIES
+  NAMES liburing.a liburing)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(uring 
+  DEFAULT_MSG uring_LIBRARIES uring_INCLUDE_DIR)
+
+mark_as_advanced(
+  uring_INCLUDE_DIR
+  uring_LIBRARIES)
+
+if(uring_FOUND AND NOT TARGET uring::uring)
+  add_library(uring::uring UNKNOWN IMPORTED)
+  set_target_properties(uring::uring PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${uring_INCLUDE_DIR}"
+    IMPORTED_LINK_INTERFACE_LANGUAGES "C"
+    IMPORTED_LOCATION "${uring_LIBRARIES}")
+endif()
+
 set(PROJECT_SOURCE_DIR "src")
 set(PROJECT_SOURCE_LIB_MODULE "${PROJECT_SOURCE_DIR}/proactor")
 set(PROJECT_INCLUDE_DIR "include")
@@ -24,10 +44,11 @@ file (GLOB INCLUDE_FILES
 file (GLOB TEST_FILES
   "${PROJECT_TEST_DIR}/*.cpp")
 
-add_executable(project "${PROJECT_SOURCE_DIR}/main.cpp" ${SRC_FILES} ${INCLUDE_FILES})
+include_directories(project ${PROJECT_INCLUDE_DIR} )
+add_executable(project "${PROJECT_SOURCE_DIR}/main.cpp" ${SRC_FILES} ${INCLUDE_FILES} "${uring_INCLUDE_DIR}/liburing.h")
+target_link_libraries(project -luring)
 
 target_link_libraries(project PUBLIC )
-
 
 find_package(Catch2 3 REQUIRED)
 # These tests can use the Catch2-provided main
